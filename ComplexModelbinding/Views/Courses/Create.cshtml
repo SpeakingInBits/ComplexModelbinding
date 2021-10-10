@@ -2,6 +2,19 @@
 
 @{
     ViewData["Title"] = "Create";
+
+    List<SelectListItem> instructorsSelectList = new();
+    foreach(Instructor teacher in Model.AllAvailableInstructors)
+    {
+        instructorsSelectList.Add
+        (
+            new SelectListItem()
+            {
+                Value = teacher.Id.ToString(),
+                Text = teacher.FullName
+            }
+        );
+    }
 }
 
 <h1>Create</h1>
@@ -23,11 +36,7 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <select asp-for="AllAvailableInstructors">
-                    @foreach(Instructor teacher in Model.AllAvailableInstructors)
-                    {
-                        <option value="@teacher.Id">@teacher.FullName</option>
-                    }
+                <select asp-for="ChosenInstructor" asp-items="instructorsSelectList" >
                 </select>
             </div>
             <div class="form-group">

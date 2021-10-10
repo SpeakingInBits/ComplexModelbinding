@@ -64,6 +64,7 @@ namespace ComplexModelbinding.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            course.AllAvailableInstructors = _context.Instructors.OrderBy(i => i.FullName).ToList();
             return View(course);
         }
 
