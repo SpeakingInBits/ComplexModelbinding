@@ -20,8 +20,8 @@ namespace ComplexModelbinding.Models
 
         public string Description {  get; set; }
 
-        public List<Instructor> AllAvailableInstructors { get; set; }
+        public List<Instructor>? AllAvailableInstructors { get; set; }
 
-        public Instructor ChosenInstructor { get; set; }
+        public int ChosenInstructor { get; set; }
     }
 }

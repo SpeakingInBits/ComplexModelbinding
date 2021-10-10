@@ -60,7 +60,20 @@ namespace ComplexModelbinding.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(course);
+                Course newCourse = new()
+                {
+                    Description = course.Description,
+                    Title = course.Title,
+                    Teacher = new Instructor()
+                    {
+                        Id = course.ChosenInstructor
+                    }
+                };
+
+                // Tell EF that we have not modified the existing instructor
+                _context.Entry(newCourse.Teacher).State = EntityState.Unchanged;
+
+                _context.Add(newCourse);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
