@@ -7,22 +7,23 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ComplexModelbinding.Data;
 using ComplexModelbinding.Models;
+using System.Data.Common;
 
 namespace ComplexModelbinding.Controllers
 {
     public class InstructorsController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IInstructorRepository _instructorRepo;
 
-        public InstructorsController(ApplicationDbContext context)
+        public InstructorsController(IInstructorRepository instructorRepo)
         {
-            _context = context;
+            _instructorRepo = instructorRepo;
         }
 
         // GET: Instructors
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Instructors.ToListAsync());
+            return View(await _instructorRepo.GetAllInstructors());
         }
 
         // GET: Instructors/Details/5
@@ -33,8 +34,7 @@ namespace ComplexModelbinding.Controllers
                 return NotFound();
             }
 
-            var instructor = await _context.Instructors
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var instructor = await _instructorRepo.GetInstructor(id.Value);
             if (instructor == null)
             {
                 return NotFound();
@@ -58,8 +58,7 @@ namespace ComplexModelbinding.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(instructor);
-                await _context.SaveChangesAsync();
+                await _instructorRepo.SaveInstructor(instructor);
                 return RedirectToAction(nameof(Index));
             }
             return View(instructor);
@@ -73,7 +72,7 @@ namespace ComplexModelbinding.Controllers
                 return NotFound();
             }
 
-            var instructor = await _context.Instructors.FindAsync(id);
+            var instructor = await _instructorRepo.GetInstructor(id.Value);
             if (instructor == null)
             {
                 return NotFound();
@@ -97,12 +96,11 @@ namespace ComplexModelbinding.Controllers
             {
                 try
                 {
-                    _context.Update(instructor);
-                    await _context.SaveChangesAsync();
+                    await _instructorRepo.UpdateInstructor(instructor);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!InstructorExists(instructor.Id))
+                    if (!await InstructorExists(instructor.Id))
                     {
                         return NotFound();
                     }
@@ -124,8 +122,7 @@ namespace ComplexModelbinding.Controllers
                 return NotFound();
             }
 
-            var instructor = await _context.Instructors
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var instructor = await _instructorRepo.GetInstructor(id.Value);
             if (instructor == null)
             {
                 return NotFound();
@@ -139,15 +136,18 @@ namespace ComplexModelbinding.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var instructor = await _context.Instructors.FindAsync(id);
-            _context.Instructors.Remove(instructor);
-            await _context.SaveChangesAsync();
+            var instructor = await _instructorRepo.GetInstructor(id);
+
+            TempData["Message"] = $"{instructor.FullName} was removed from any related courses";
+
+            // Remove instructor
+            await _instructorRepo.DeleteInstructor(instructor.Id);
             return RedirectToAction(nameof(Index));
         }
 
-        private bool InstructorExists(int id)
+        private async Task<bool> InstructorExists(int id)
         {
-            return _context.Instructors.Any(e => e.Id == id);
+            return await _instructorRepo.GetInstructor(id) != null;
         }
     }
 }
